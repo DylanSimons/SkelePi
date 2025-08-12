@@ -27,13 +27,30 @@ const videoWidth = 480;
   });
 })();
 
-enableBtn.addEventListener("click", async () => {
-  if (!faceLandmarker) return alert("Face Landmarker not loaded yet.");
+let currentStream = null;
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
-  video.addEventListener("loadeddata", predictLoop);
-  webcamRunning = true;
+enableBtn.addEventListener("click", async () => {
+  if (!webcamRunning) {
+    if (!faceLandmarker) return alert("Face Landmarker not loaded yet.");
+
+    currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = currentStream;
+    video.addEventListener("loadeddata", predictLoop, { once: true });
+    webcamRunning = true;
+    enableBtn.textContent = "Disable Webcam";
+  } else {
+    // Disable webcam
+    webcamRunning = false;
+    enableBtn.textContent = "Enable Webcam";
+    if (video.srcObject) {
+      const tracks = video.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      video.srcObject = null;
+    }
+    currentStream = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    anglesEl.innerText = "";
+  }
 });
 
 async function predictLoop() {
