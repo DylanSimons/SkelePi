@@ -1,1 +1,1 @@
-web: gunicorn Chatterbones.wsgi
+web: gunicorn Website_control/Chatterbones.wsgi
