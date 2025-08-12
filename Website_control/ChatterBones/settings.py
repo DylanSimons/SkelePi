@@ -12,8 +12,19 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+##### FROM https://github.com/heroku/python-getting-started/blob/main/gettingstarted/settings.py ####
+# The `DYNO` env var is set on Heroku CI, but it's not a real Heroku app, so we have to
+# also explicitly exclude CI:
+# https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
+IS_HEROKU_APP = "DYNO" in os.environ and "CI" not in os.environ
+
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +36,27 @@ SECRET_KEY = "django-insecure-bf#py9^lqgaqg-q^r3ch6&-b$=s%fo78sx5(9+c61q-_omxc2#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if IS_HEROKU_APP:
+    # On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS`, since the Heroku router performs
+    # validation of the Host header in the incoming HTTP request. On other platforms you may need to
+    # list the expected hostnames explicitly in production to prevent HTTP Host header attacks. See:
+    # https://docs.djangoproject.com/en/5.2/ref/settings/#std-setting-ALLOWED_HOSTS
+    ALLOWED_HOSTS = ["*"]
+
+    # Redirect all non-HTTPS requests to HTTPS. This requires that:
+    # 1. Your app has a TLS/SSL certificate, which all `*.herokuapp.com` domains do by default.
+    #    When using a custom domain, you must configure one. See:
+    #    https://devcenter.heroku.com/articles/automated-certificate-management
+    # 2. Your app's WSGI web server is configured to use the `X-Forwarded-Proto` headers set by
+    #    the Heroku Router (otherwise you may encounter infinite HTTP 301 redirects). See this
+    #    app's `gunicorn.conf.py` for how this is done when using gunicorn.
+    #
+    # For maximum security, consider enabling HTTP Strict Transport Security (HSTS) headers too:
+    # https://docs.djangoproject.com/en/5.2/ref/middleware/#http-strict-transport-security
+    SECURE_SSL_REDIRECT = True
+else:
+    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
+
 
 
 # Application definition
@@ -74,12 +105,36 @@ WSGI_APPLICATION = "ChatterBones.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+WSGI_APPLICATION = "gettingstarted.wsgi.application"
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+if IS_HEROKU_APP:
+    # In production on Heroku the database configuration is derived from the `DATABASE_URL`
+    # environment variable by the dj-database-url package. `DATABASE_URL` will be set
+    # automatically by Heroku when a database addon is attached to your Heroku app. See:
+    # https://devcenter.heroku.com/articles/provisioning-heroku-postgres#application-config-vars
+    # https://github.com/jazzband/dj-database-url
+    DATABASES = {
+        "default": dj_database_url.config(
+            env="DATABASE_URL",
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        ),
     }
-}
+else:
+    # When running locally in development or in CI, a sqlite database file will be used instead
+    # to simplify initial setup. Longer term it's recommended to use Postgres locally too.
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
 
 
 # Password validation
