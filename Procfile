@@ -1,1 +1,1 @@
-web: gunicorn Website_control.ChatterBones.wsgi
+web: gunicorn ChatterBones.wsgi --chdir Website_control
