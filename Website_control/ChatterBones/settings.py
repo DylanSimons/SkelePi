@@ -58,10 +58,7 @@ if IS_HEROKU_APP:
 else:
     ALLOWED_HOSTS = [
         ".localhost", 
-        "127.0.0.1", 
-        "[::1]", 
-        "0.0.0.0", 
-        "[::]",
+        "127.0.0.1",
         "chatterbones.com",
         "www.chatterbones.com",
         "skelepi-8e03ee26a7f0.herokuapp.com", 
