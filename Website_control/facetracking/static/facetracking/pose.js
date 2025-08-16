@@ -6,6 +6,7 @@ const canvas = document.getElementById("output_canvas");
 const ctx = canvas.getContext("2d");
 const anglesEl = document.getElementById("angles");
 const enableBtn = document.getElementById("enableWebcam");
+const loadingOverlay = document.getElementById("loadingOverlay");
 
 let faceLandmarker;
 let webcamRunning = false;
@@ -33,11 +34,20 @@ enableBtn.addEventListener("click", async () => {
   if (!webcamRunning) {
     if (!faceLandmarker) return alert("Face Landmarker not loaded yet.");
 
-    currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = currentStream;
-    video.addEventListener("loadeddata", predictLoop, { once: true });
-    webcamRunning = true;
-    enableBtn.textContent = "Disable Webcam";
+    loadingOverlay.style.display = "flex";
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = currentStream;
+      video.addEventListener("loadeddata", () => {
+        loadingOverlay.style.display = "none";
+        predictLoop();
+      }, { once: true });
+      webcamRunning = true;
+      enableBtn.textContent = "Disable Webcam";
+    } catch (e) {
+      loadingOverlay.style.display = "none";
+      alert("Could not access webcam.");
+    }
   } else {
     // Disable webcam
     webcamRunning = false;
@@ -50,6 +60,7 @@ enableBtn.addEventListener("click", async () => {
     currentStream = null;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     anglesEl.innerText = "";
+    loadingOverlay.style.display = "none";
   }
 });
 

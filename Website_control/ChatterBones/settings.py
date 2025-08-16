@@ -56,7 +56,16 @@ if IS_HEROKU_APP:
     # https://docs.djangoproject.com/en/5.2/ref/middleware/#http-strict-transport-security
     SECURE_SSL_REDIRECT = True
 else:
-    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]", "0.0.0.0", "[::]"]
+    ALLOWED_HOSTS = [
+        ".localhost", 
+        "127.0.0.1", 
+        "[::1]", 
+        "0.0.0.0", 
+        "[::]",
+        "chatterbones.com",
+        "www.chatterbones.com",
+        "skelepi-8e03ee26a7f0.herokuapp.com", 
+    ]
 
 
 
