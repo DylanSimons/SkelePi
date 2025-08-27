@@ -83,20 +83,29 @@ async function predictLoop() {
     const chin = landmarks[152]; // Chin
     const forehead = landmarks[10]; // Approx top of forehead
 
+    // Mouth openness calculation
+    const upperLip = landmarks[13]; // Upper lip
+    const lowerLip = landmarks[14]; // Lower lip
+    const mouthOpenDist = Math.sqrt(
+      Math.pow(upperLip.x - lowerLip.x, 2) +
+      Math.pow(upperLip.y - lowerLip.y, 2) +
+      Math.pow(upperLip.z - lowerLip.z, 2)
+    ) * 100;
+
     // Vectors
     const dx = rightEye.x - leftEye.x;
     const dy = rightEye.y - leftEye.y;
     const dz = rightEye.z - leftEye.z;
 
     const eyeVectorLength = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    const yaw = Math.atan2(dx, dz) * (180 / Math.PI);
+    const yaw = Math.atan2(dx, dz) * (180 / Math.PI) - 90;
     const roll = Math.atan2(dy, dx) * (180 / Math.PI);
 
     const dyPitch = chin.y - forehead.y;
     const dzPitch = chin.z - forehead.z;
-    const pitch = Math.atan2(dyPitch, dzPitch) * (180 / Math.PI);
+    const pitch = Math.atan2(dyPitch, dzPitch) * (180 / Math.PI) - 90;
 
-    anglesEl.innerText = `Yaw: ${yaw.toFixed(2)}°\nPitch: ${pitch.toFixed(2)}°\nRoll: ${roll.toFixed(2)}°`;
+  anglesEl.innerText = `Yaw: ${yaw.toFixed(2)}°\nPitch: ${pitch.toFixed(2)}°\nRoll: ${roll.toFixed(2)}°\nMouth Open: ${mouthOpenDist.toFixed(4)}`;
 
     // Draw landmarks
     const drawer = new DrawingUtils(ctx);
